@@ -5,7 +5,7 @@ A beautiful, nature-themed Next.js application for tracking carbon footprints an
 ![CarbonSmart](https://img.shields.io/badge/Next.js-14.0-black?style=for-the-badge&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue?style=for-the-badge&logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?style=for-the-badge&logo=tailwind-css)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?style=for-the-badge&logo=postgresql)
+![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=for-the-badge&logo=sqlite)
 
 ## ✨ Features
 
@@ -23,7 +23,7 @@ A beautiful, nature-themed Next.js application for tracking carbon footprints an
 - **Frontend**: Next.js 14, React 18, TypeScript
 - **Styling**: Tailwind CSS, Framer Motion
 - **Authentication**: NextAuth.js
-- **Database**: PostgreSQL with Prisma ORM
+- **Database**: SQLite with Prisma ORM
 - **Blockchain**: Wagmi, RainbowKit, Ethers.js
 - **Charts**: Recharts
 - **State Management**: Zustand
@@ -32,9 +32,8 @@ A beautiful, nature-themed Next.js application for tracking carbon footprints an
 ## 📋 Prerequisites
 
 - Node.js 18+ and npm/yarn
-- PostgreSQL database
-- Backend API running (Django at http://127.0.0.1:8000)
-- AI Engine running (FastAPI at http://127.0.0.1:8002)
+- Backend API running (Django at `http://127.0.0.1:8000`)
+- AI Engine running (FastAPI at `http://127.0.0.1:8002`)
 
 ## 🚀 Quick Start
 
@@ -64,8 +63,8 @@ cp .env.local.example .env.local
 Edit `.env.local` with your configuration:
 
 ```env
-# Database
-DATABASE_URL="postgresql://username:password@localhost:5432/carbonsmart"
+# Database (SQLite - file created automatically)
+DATABASE_URL="file:./dev.db"
 
 # NextAuth
 NEXTAUTH_URL="http://localhost:3000"
@@ -90,11 +89,8 @@ NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID="your_project_id"
 # Generate Prisma client
 npx prisma generate
 
-# Run database migrations
-npx prisma migrate dev
-
-# (Optional) Seed the database
-npx prisma db seed
+# Create database and run migrations
+npx prisma db push
 ```
 
 ### 5. Run the development server
@@ -241,10 +237,10 @@ MIT License - feel free to use this project for your own purposes.
 
 ## 💡 Troubleshooting
 
-### Database Connection Issues
-- Ensure PostgreSQL is running
-- Check DATABASE_URL in .env.local
-- Run `npx prisma migrate dev` to sync schema
+### Database Issues
+
+- Check DATABASE_URL in .env.local is set to `file:./dev.db`
+- Run `npx prisma db push` to sync schema
 
 ### API Connection Issues
 - Verify backend is running at configured URLs

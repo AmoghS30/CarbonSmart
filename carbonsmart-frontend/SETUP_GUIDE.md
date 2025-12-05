@@ -15,22 +15,14 @@ Before starting, ensure you have the following installed:
   npm --version   # Should show 8.x.x or higher
   ```
 
-### 2. **PostgreSQL Database**
-- **Required**: PostgreSQL 12 or higher
-- **Download**: https://www.postgresql.org/download/
-- **Verify installation**:
-  ```bash
-  psql --version  # Should show PostgreSQL 12.x or higher
-  ```
-
-### 3. **Git**
+### 2. **Git**
 - **Download**: https://git-scm.com/downloads
 - **Verify installation**:
   ```bash
   git --version
   ```
 
-### 4. **Code Editor**
+### 3. **Code Editor**
 - **Recommended**: VS Code (https://code.visualstudio.com/)
 - Install these VS Code extensions:
   - Prisma
@@ -107,9 +99,9 @@ This will install all required packages including:
 3. **Edit `.env.local` file** and update these values:
 
    ```env
-   # Database Configuration
-   DATABASE_URL="postgresql://YOUR_DB_USER:YOUR_DB_PASSWORD@localhost:5432/carbonsmart"
-   
+   # Database Configuration (SQLite - file created automatically)
+   DATABASE_URL="file:./dev.db"
+
    # NextAuth Configuration
    NEXTAUTH_URL="http://localhost:3000"
    NEXTAUTH_SECRET="paste-your-generated-secret-here"
@@ -127,55 +119,22 @@ This will install all required packages including:
    NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID="your_project_id_here"
    ```
 
-### Step 4: Set Up PostgreSQL Database
+### Step 4: Set Up Database
 
-1. **Start PostgreSQL service:**
-   
-   **macOS:**
-   ```bash
-   brew services start postgresql
-   ```
-   
-   **Linux:**
-   ```bash
-   sudo systemctl start postgresql
-   ```
-   
-   **Windows:**
-   - PostgreSQL should start automatically
-   - Or use pgAdmin
-
-2. **Create the database:**
-   ```bash
-   # Login to PostgreSQL
-   psql -U postgres
-   
-   # Create database
-   CREATE DATABASE carbonsmart;
-   
-   # Exit
-   \q
-   ```
-
-3. **Alternative using command line:**
-   ```bash
-   createdb -U postgres carbonsmart
-   ```
-
-### Step 5: Run Database Migrations
+SQLite is used for simplicity - no separate database server needed!
 
 ```bash
 # Generate Prisma Client
 npx prisma generate
 
-# Run migrations to create tables
-npx prisma migrate dev --name init
+# Create database and tables
+npx prisma db push
 
 # (Optional) Open Prisma Studio to view database
 npx prisma studio
 ```
 
-### Step 6: Start Backend Services
+### Step 5: Start Backend Services
 
 The application requires two backend services to be running:
 
@@ -206,7 +165,7 @@ pip install -r requirements.txt
 uvicorn main:app --reload --port 8002
 ```
 
-### Step 7: Start the Frontend Application
+### Step 6: Start the Frontend Application
 
 ```bash
 # Back in the frontend folder
@@ -237,14 +196,12 @@ The application will start at: **http://localhost:3000**
 
 ### Common Issues and Solutions:
 
-#### 1. **Database Connection Error**
-```
-Error: Can't reach database server at `localhost:5432`
-```
+#### 1. **Database Error**
+
 **Solution:**
-- Ensure PostgreSQL is running
-- Check credentials in `.env.local`
-- Verify database exists: `psql -U postgres -l`
+
+- Check `DATABASE_URL` in `.env.local` is set to `file:./dev.db`
+- Run `npx prisma db push` to recreate the database
 
 #### 2. **Port Already in Use**
 ```
@@ -264,18 +221,15 @@ taskkill /PID <PID> /F
 npm run dev -- -p 3001
 ```
 
-#### 3. **Prisma Migration Error**
-```
-Error: Migration failed
-```
-**Solution:**
-```bash
-# Reset database and migrations
-npx prisma migrate reset
+#### 3. **Prisma Error**
 
-# Generate client and migrate again
+**Solution:**
+
+```bash
+# Delete the database and regenerate
+rm -f prisma/dev.db
 npx prisma generate
-npx prisma migrate dev
+npx prisma db push
 ```
 
 #### 4. **Module Not Found Errors**
@@ -364,18 +318,16 @@ npm run analyze
 ```
 
 ### Database Management:
+
 ```bash
 # View database in GUI
 npx prisma studio
 
-# Generate migration
-npx prisma migrate dev
-
-# Apply migrations
-npx prisma migrate deploy
+# Sync schema changes to database
+npx prisma db push
 
 # Reset database
-npx prisma migrate reset
+rm -f prisma/dev.db && npx prisma db push
 ```
 
 ## 📚 Additional Resources
@@ -399,15 +351,13 @@ If you encounter issues:
 ## ✅ Setup Checklist
 
 - [ ] Node.js 18+ installed
-- [ ] PostgreSQL installed and running
-- [ ] Database created
 - [ ] Dependencies installed (`npm install`)
 - [ ] Environment variables configured
-- [ ] Database migrations run
+- [ ] Database created (`npx prisma db push`)
 - [ ] Django backend running (port 8000)
 - [ ] AI engine running (port 8002)
 - [ ] Frontend running (`npm run dev`)
-- [ ] Can access http://localhost:3000
+- [ ] Can access `http://localhost:3000`
 - [ ] Can create account and login
 - [ ] Can log activities
 

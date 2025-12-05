@@ -17,7 +17,7 @@ A full-stack Web3 application for tracking carbon emissions and earning blockcha
 |-----------|------------|
 | Frontend | Next.js 14, TypeScript, Tailwind CSS, Framer Motion |
 | Authentication | NextAuth.js with Prisma adapter |
-| Database | PostgreSQL with Prisma ORM |
+| Database | SQLite with Prisma ORM |
 | Backend API | Django REST Framework |
 | AI Engine | FastAPI with scikit-learn |
 | Blockchain | Solidity, Hardhat, ethers.js |
@@ -48,7 +48,7 @@ CarbonSmart/
 
 - **Node.js** >= 18.x
 - **Python** >= 3.9
-- **PostgreSQL** >= 14
+- **SQLite** (included with Python/Node.js)
 - **MetaMask** or compatible Web3 wallet
 - **Sepolia testnet ETH** (for minting NFTs)
 
@@ -157,8 +157,8 @@ npx hardhat run scripts/deploy.js --network sepolia
 ### Frontend (`carbonsmart-frontend/.env.local`)
 
 ```env
-# Database
-DATABASE_URL="postgresql://username:password@localhost:5432/carbonsmart?schema=public"
+# Database (SQLite - file will be created automatically)
+DATABASE_URL="file:./dev.db"
 
 # NextAuth
 NEXTAUTH_URL="http://localhost:3000"
