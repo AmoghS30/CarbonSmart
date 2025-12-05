@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  username      String    @unique
+  email         String    @unique
+  password      String
+  walletAddress String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  activities    Activity[]
+  profile       UserProfile?
+}
+
+model UserProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName     String?
+  bio             String?
+  avatarUrl       String?
+  totalEmissions  Float    @default(0)
+  creditsEarned   Int      @default(0)
+  level           Int      @default(1)
+  xp              Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Activity {
+  id                 String   @id @default(cuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activityType       String
+  activity           String
+  predictedEmission  Float
+  transactionHash    String?
+  timestamp          DateTime @default(now())
+  metadata           Json?
+}
+
+model CarbonGoal {
+  id              String   @id @default(cuid())
+  title           String
+  description     String
+  targetEmission  Float
+  startDate       DateTime
+  endDate         DateTime
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Company {
+  id            String    @id @default(cuid())
+  companyName   String    @unique
+  gstin         String    @unique
+  email         String    @unique
+  password      String
+  walletAddress String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  profile       CompanyProfile?
+}
+
+model CompanyProfile {
+  id              String   @id @default(cuid())
+  companyId       String   @unique
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  displayName     String?
+  description     String?
+  industry        String?
+  totalEmissions  Float    @default(0)
+  creditsEarned   Int      @default(0)
+  creditsOffset   Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model MarketplaceListing {
+  id              String   @id @default(cuid())
+  sellerId        String
+  sellerType      String   // "user" or "company"
+  tokenId         Int
+  priceInWei      String   // Store as string to handle big numbers
+  priceInEth      Float
+  co2Amount       Int      // in grams
+  activityType    String
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  buyer           String?  // buyer wallet address when sold
+  soldAt          DateTime?
+}

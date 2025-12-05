@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: carbonsmart-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: carbonsmart
+      POSTGRES_USER: carbonsmart_user
+      POSTGRES_PASSWORD: carbonsmart_pass123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - carbonsmart-network
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: carbonsmart-frontend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://carbonsmart_user:carbonsmart_pass123@postgres:5432/carbonsmart
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: your-generated-secret-here
+      NEXT_PUBLIC_API_URL: http://backend:8000
+      NEXT_PUBLIC_AI_API_URL: http://ai-engine:8002
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    networks:
+      - carbonsmart-network
+    command: >
+      sh -c "
+        npx prisma migrate deploy &&
+        node server.js
+      "
+
+  # Django Backend (placeholder - you'll need to add your backend Dockerfile)
+  backend:
+    image: python:3.11-slim
+    container_name: carbonsmart-backend
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ../backend:/app  # Adjust path to your backend folder
+    environment:
+      DATABASE_URL: postgresql://carbonsmart_user:carbonsmart_pass123@postgres:5432/carbonsmart
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    networks:
+      - carbonsmart-network
+    command: >
+      sh -c "
+        pip install -r requirements.txt &&
+        python manage.py migrate &&
+        python manage.py runserver 0.0.0.0:8000
+      "
+
+  # AI Engine (placeholder - you'll need to add your AI engine)
+  ai-engine:
+    image: python:3.11-slim
+    container_name: carbonsmart-ai
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ../ai-engine:/app  # Adjust path to your AI engine folder
+    ports:
+      - "8002:8002"
+    networks:
+      - carbonsmart-network
+    command: >
+      sh -c "
+        pip install -r requirements.txt &&
+        uvicorn main:app --host 0.0.0.0 --port 8002 --reload
+      "
+
+  # Adminer for database management (optional)
+  adminer:
+    image: adminer
+    container_name: carbonsmart-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    networks:
+      - carbonsmart-network
+    depends_on:
+      - postgres
+
+networks:
+  carbonsmart-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

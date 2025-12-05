@@ -1,0 +1,112 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+.env/
+ENV/
+env.bak/
+venv.bak/
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Environment variables (IMPORTANT - contains secrets)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# Keep example files
+!.env.example
+!*.env.example
+
+# Next.js
+.next/
+out/
+.swc/
+
+# Build outputs
+build/
+dist/
+*.tsbuildinfo
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+nosetests.xml
+coverage.xml
+
+# Prisma
+prisma/migrations/
+
+# Hardhat/Blockchain
+blockchain/cache/
+blockchain/artifacts/
+blockchain/typechain/
+blockchain/typechain-types/
+
+# Django
+*.sqlite3
+db.sqlite3
+staticfiles/
+media/
+*.pot
+*.pyc
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Local development
+*.local
+.vercel
+
+# Misc
+*.pem
+*.key
+.cache/
+tmp/
+temp/
