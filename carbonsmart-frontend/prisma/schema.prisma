@@ -46,7 +46,7 @@ model Activity {
   predictedEmission  Float
   transactionHash    String?
   timestamp          DateTime @default(now())
-  metadata           Json?
+  metadata           String?  // Stored as JSON string for SQLite compatibility
 }
 
 model CarbonGoal {
