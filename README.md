@@ -57,7 +57,7 @@ CarbonSmart/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/CarbonSmart.git
+git clone https://github.com/AmoghS30/CarbonSmart.git
 cd CarbonSmart
 ```
 
