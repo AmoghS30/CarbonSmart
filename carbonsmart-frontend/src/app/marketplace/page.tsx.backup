@@ -2,12 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { useAccount, useWalletClient } from 'wagmi'
+import { useAccount } from 'wagmi'
 import { motion } from 'framer-motion'
 import { toast } from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
-import { apiService } from '@/services/api'
-import { approveNFT } from '@/utils/nftApproval'
 import {
   ShoppingCartIcon,
   TagIcon,
@@ -15,7 +13,6 @@ import {
   CheckCircleIcon,
   XMarkIcon,
   FunnelIcon,
-  ShieldCheckIcon,
 } from '@heroicons/react/24/outline'
 
 interface Listing {
@@ -30,147 +27,69 @@ interface Listing {
   isActive: boolean
 }
 
+// Mock listings for demo - In production, these would come from the backend
+const mockListings: Listing[] = [
+  {
+    id: '1',
+    tokenId: 1,
+    seller: 'eco_company',
+    sellerWallet: '0x1234...5678',
+    priceEth: 0.01,
+    co2Amount: 100,
+    activityType: 'tree_planting',
+    createdAt: '2024-12-01',
+    isActive: true,
+  },
+  {
+    id: '2',
+    tokenId: 2,
+    seller: 'green_corp',
+    sellerWallet: '0x2345...6789',
+    priceEth: 0.015,
+    co2Amount: 200,
+    activityType: 'renewable_energy',
+    createdAt: '2024-12-02',
+    isActive: true,
+  },
+  {
+    id: '3',
+    tokenId: 3,
+    seller: 'carbon_neutral',
+    sellerWallet: '0x3456...7890',
+    priceEth: 0.008,
+    co2Amount: 50,
+    activityType: 'recycling',
+    createdAt: '2024-12-03',
+    isActive: true,
+  },
+]
+
 export default function MarketplacePage() {
   const { data: session } = useSession()
   const { address } = useAccount()
-  const { data: walletClient } = useWalletClient()
   const router = useRouter()
 
-  const [listings, setListings] = useState<Listing[]>([])
+  const [listings, setListings] = useState<Listing[]>(mockListings)
   const [userCredits, setUserCredits] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [purchasingId, setPurchasingId] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
   const [showListModal, setShowListModal] = useState(false)
   const [selectedCredit, setSelectedCredit] = useState<any>(null)
   const [listPrice, setListPrice] = useState('')
   const [filter, setFilter] = useState('all')
-  const [isApproved, setIsApproved] = useState(false)
-  const [isApproving, setIsApproving] = useState(false)
-  const [marketplaceConfig, setMarketplaceConfig] = useState<{
-    contractAddress: string
-    marketplaceOperator: string
-  } | null>(null)
 
-  // Load marketplace listings on mount
-  useEffect(() => {
-    loadMarketplaceListings()
-  }, [])
-
-  // Load user credits when wallet is connected
   useEffect(() => {
     if (address) {
       loadUserCredits()
     }
   }, [address])
 
-  // Load marketplace configuration on mount
-  useEffect(() => {
-    loadMarketplaceConfig()
-  }, [])
-
-  // Check approval when credit is selected
-  useEffect(() => {
-    if (selectedCredit && address && marketplaceConfig) {
-      checkApproval()
-    }
-  }, [selectedCredit, address, marketplaceConfig])
-
-  const loadMarketplaceConfig = async () => {
-    try {
-      const config = await apiService.getMarketplaceContractAddress()
-      if (config.success) {
-        setMarketplaceConfig({
-          contractAddress: config.contract_address,
-          marketplaceOperator: config.marketplace_operator,
-        })
-      }
-    } catch (error) {
-      console.error('Error loading marketplace config:', error)
-    }
-  }
-
-  const checkApproval = async () => {
-    if (!selectedCredit || !address) return
-
-    try {
-      const result = await apiService.checkApprovalStatus(
-        selectedCredit.token_id,
-        address
-      )
-      setIsApproved(result.approved || false)
-    } catch (error) {
-      console.error('Error checking approval:', error)
-      setIsApproved(false)
-    }
-  }
-
-  const handleApprove = async () => {
-    if (!selectedCredit || !address || !walletClient || !marketplaceConfig) {
-      toast.error('Missing required information')
-      return
-    }
-
-    setIsApproving(true)
-    try {
-      const result = await approveNFT(
-        walletClient,
-        marketplaceConfig.contractAddress,
-        marketplaceConfig.marketplaceOperator,
-        selectedCredit.token_id,
-        address
-      )
-
-      if (result.success) {
-        toast.success(
-          <div>
-            <p>NFT Approved Successfully!</p>
-            {result.txHash && (
-              <a
-                href={`https://sepolia.etherscan.io/tx/${result.txHash}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-300 hover:text-blue-100 underline text-sm"
-              >
-                View Transaction →
-              </a>
-            )}
-          </div>,
-          { duration: 6000 }
-        )
-        setIsApproved(true)
-      } else {
-        toast.error(result.error || 'Failed to approve NFT')
-      }
-    } catch (error: any) {
-      console.error('Approval error:', error)
-      toast.error('Failed to approve NFT')
-    } finally {
-      setIsApproving(false)
-    }
-  }
-
-  const loadMarketplaceListings = async () => {
-    try {
-      setIsLoading(true)
-      const fetchedListings = await apiService.getMarketplaceListings()
-      setListings(fetchedListings)
-    } catch (error) {
-      console.error('Error loading marketplace:', error)
-      toast.error('Failed to load marketplace listings')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   const loadUserCredits = async () => {
-    if (!address) return
-
-    try {
-      const credits = await apiService.getUserNFTCredits(address)
-      setUserCredits(credits)
-    } catch (error) {
-      console.error('Error loading user credits:', error)
-    }
+    // In production, fetch from blockchain/backend
+    // For demo, using mock data
+    setUserCredits([
+      { tokenId: 10, co2Amount: 150, activityType: 'tree_planting' },
+      { tokenId: 11, co2Amount: 75, activityType: 'recycling' },
+    ])
   }
 
   const handleBuy = async (listing: Listing) => {
@@ -185,48 +104,20 @@ export default function MarketplacePage() {
       return
     }
 
-    setPurchasingId(listing.id)
-
-    // Show processing toast
-    const loadingToast = toast.loading('Processing blockchain transaction...')
-
+    setIsLoading(true)
     try {
-      const result = await apiService.buyMarketplaceListing(listing.id, {
-        buyerWallet: address,
-        buyer: session.user.username || session.user.email || 'anonymous',
-      })
+      // In production, this would:
+      // 1. Call smart contract to transfer NFT
+      // 2. Handle ETH payment
+      // 3. Update backend listing status
 
-      // Dismiss loading toast
-      toast.dismiss(loadingToast)
-
-      // Show success with transaction link
-      if (result.success && result.transactionHash) {
-        toast.success(
-          <div className="flex flex-col gap-1">
-            <span className="font-semibold">Purchase Successful!</span>
-            <a
-              href={`https://sepolia.etherscan.io/tx/${result.transactionHash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-primary-600 hover:text-primary-700 underline"
-            >
-              View on Etherscan
-            </a>
-          </div>,
-          { duration: 8000 }
-        )
-      }
-
-      // Refresh listings after successful purchase
-      await loadMarketplaceListings()
-      // Refresh user credits
-      await loadUserCredits()
+      toast.success(`Successfully purchased Credit #${listing.tokenId}!`)
+      setListings(listings.filter(l => l.id !== listing.id))
     } catch (error) {
       console.error('Purchase error:', error)
-      toast.dismiss(loadingToast)
-      // Error toast is shown by apiService
+      toast.error('Failed to complete purchase')
     } finally {
-      setPurchasingId(null)
+      setIsLoading(false)
     }
   }
 
@@ -236,31 +127,33 @@ export default function MarketplacePage() {
       return
     }
 
-    if (!address) {
-      toast.error('Please connect your wallet')
-      return
-    }
-
     setIsLoading(true)
     try {
-      await apiService.createMarketplaceListing({
-        tokenId: selectedCredit.token_id,
-        sellerWallet: address,
+      // In production, this would:
+      // 1. Approve marketplace contract
+      // 2. Create listing on backend
+
+      const newListing: Listing = {
+        id: Date.now().toString(),
+        tokenId: selectedCredit.tokenId,
+        seller: session?.user?.username || 'anonymous',
+        sellerWallet: address || '',
         priceEth: parseFloat(listPrice),
-        seller: session?.user?.username || session?.user?.email || 'anonymous',
-      })
+        co2Amount: selectedCredit.co2Amount,
+        activityType: selectedCredit.activityType,
+        createdAt: new Date().toISOString().split('T')[0],
+        isActive: true,
+      }
 
-      // Refresh listings after creating new listing
-      await loadMarketplaceListings()
-      // Refresh user credits
-      await loadUserCredits()
-
+      setListings([newListing, ...listings])
+      setUserCredits(userCredits.filter(c => c.tokenId !== selectedCredit.tokenId))
       setShowListModal(false)
       setSelectedCredit(null)
       setListPrice('')
+      toast.success('Credit listed successfully!')
     } catch (error) {
       console.error('Listing error:', error)
-      // Error toast is shown by apiService
+      toast.error('Failed to list credit')
     } finally {
       setIsLoading(false)
     }
@@ -376,17 +269,9 @@ export default function MarketplacePage() {
             </div>
           </div>
 
-          {/* Loading State */}
-          {isLoading && listings.length === 0 ? (
-            <div className="card p-12 text-center">
-              <div className="spinner-lg mx-auto mb-4"></div>
-              <p className="text-neutral-500">Loading marketplace...</p>
-            </div>
-          ) : (
-            <>
-              {/* Listings Grid */}
-              {filteredListings.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Listings Grid */}
+          {filteredListings.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredListings.map((listing) => (
                 <motion.div
                   key={listing.id}
@@ -423,22 +308,6 @@ export default function MarketplacePage() {
                       <span className="text-neutral-500">Listed</span>
                       <span className="font-medium text-neutral-900">{listing.createdAt}</span>
                     </div>
-                    {listing.transactionHash && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-neutral-500">Blockchain</span>
-                        <a
-                          href={`https://sepolia.etherscan.io/tx/${listing.transactionHash}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
-                        >
-                          View on Etherscan
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                          </svg>
-                        </a>
-                      </div>
-                    )}
                   </div>
 
                   <div className="border-t border-neutral-200 pt-4">
@@ -449,25 +318,14 @@ export default function MarketplacePage() {
                       </div>
                       <button
                         onClick={() => handleBuy(listing)}
-                        disabled={purchasingId === listing.id || listing.sellerWallet === address}
-                        className={`px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                        disabled={isLoading || listing.sellerWallet === address}
+                        className={`px-6 py-2.5 rounded-lg font-medium transition-colors ${
                           listing.sellerWallet === address
                             ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed'
-                            : purchasingId === listing.id
-                            ? 'bg-primary-500 text-white cursor-wait'
                             : 'bg-primary-600 text-white hover:bg-primary-700'
                         }`}
                       >
-                        {purchasingId === listing.id ? (
-                          <>
-                            <div className="spinner h-4 w-4 border-2 border-white/30 border-t-white"></div>
-                            Processing...
-                          </>
-                        ) : listing.sellerWallet === address ? (
-                          'Your Listing'
-                        ) : (
-                          'Buy Now'
-                        )}
+                        {listing.sellerWallet === address ? 'Your Listing' : 'Buy Now'}
                       </button>
                     </div>
                   </div>
@@ -485,8 +343,6 @@ export default function MarketplacePage() {
               </p>
             </div>
           )}
-          </>
-        )}
 
           {/* Info Section */}
           <div className="mt-12 card p-8">
@@ -554,33 +410,29 @@ export default function MarketplacePage() {
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
                     Select Credit
                   </label>
-                  {userCredits.length > 0 ? (
-                    <div className="space-y-2">
-                      {userCredits.map((credit) => (
-                        <button
-                          key={credit.token_id}
-                          onClick={() => setSelectedCredit(credit)}
-                          className={`w-full p-4 rounded-lg border-2 text-left transition-colors ${
-                            selectedCredit?.token_id === credit.token_id
-                              ? 'border-primary-600 bg-primary-50'
-                              : 'border-neutral-200 hover:border-neutral-300'
-                          }`}
-                        >
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <p className="font-medium text-neutral-900">Credit #{credit.token_id}</p>
-                              <p className="text-sm text-neutral-500">
-                                {activityTypeLabels[credit.activity_type] || credit.activity_type}
-                              </p>
-                            </div>
-                            <span className="text-primary-600 font-medium">{credit.co2_amount_kg} kg</span>
+                  <div className="space-y-2">
+                    {userCredits.map((credit) => (
+                      <button
+                        key={credit.tokenId}
+                        onClick={() => setSelectedCredit(credit)}
+                        className={`w-full p-4 rounded-lg border-2 text-left transition-colors ${
+                          selectedCredit?.tokenId === credit.tokenId
+                            ? 'border-primary-600 bg-primary-50'
+                            : 'border-neutral-200 hover:border-neutral-300'
+                        }`}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-medium text-neutral-900">Credit #{credit.tokenId}</p>
+                            <p className="text-sm text-neutral-500">
+                              {activityTypeLabels[credit.activityType] || credit.activityType}
+                            </p>
                           </div>
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-neutral-500">No credits available to list</p>
-                  )}
+                          <span className="text-primary-600 font-medium">{credit.co2Amount} kg</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div>
@@ -598,49 +450,12 @@ export default function MarketplacePage() {
                   />
                 </div>
 
-                {/* Approval Status */}
-                {selectedCredit && (
-                  <div className="p-4 rounded-lg bg-neutral-50 border border-neutral-200">
-                    <div className="flex items-center gap-2 mb-2">
-                      <ShieldCheckIcon className={`h-5 w-5 ${isApproved ? 'text-green-600' : 'text-neutral-400'}`} />
-                      <span className="text-sm font-medium text-neutral-700">
-                        Marketplace Approval
-                      </span>
-                    </div>
-                    {isApproved ? (
-                      <p className="text-sm text-green-600">
-                        ✓ This NFT is approved for marketplace transfer
-                      </p>
-                    ) : (
-                      <div className="space-y-2">
-                        <p className="text-sm text-neutral-600">
-                          You must approve the marketplace contract to transfer this NFT on your behalf.
-                        </p>
-                        <button
-                          onClick={handleApprove}
-                          disabled={isApproving}
-                          className="w-full px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                          {isApproving ? 'Approving...' : 'Approve NFT Transfer'}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
                 <button
                   onClick={handleListCredit}
-                  disabled={!selectedCredit || !listPrice || isLoading || !isApproved}
-                  className="w-full btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  disabled={!selectedCredit || !listPrice || isLoading}
+                  className="w-full btn-primary py-3"
                 >
-                  {isLoading ? (
-                    <>
-                      <div className="spinner h-4 w-4 border-2 border-white/30 border-t-white"></div>
-                      Listing...
-                    </>
-                  ) : (
-                    'List Credit for Sale'
-                  )}
+                  {isLoading ? 'Listing...' : 'List Credit for Sale'}
                 </button>
               </div>
             </motion.div>

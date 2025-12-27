@@ -52,7 +52,31 @@ CarbonSmart/
 - **MetaMask** or compatible Web3 wallet
 - **Sepolia testnet ETH** (for minting NFTs)
 
-## Setup Instructions
+## Quick Start (Automated)
+
+The easiest way to start all services is using the provided startup script:
+
+```bash
+# Clone the repository
+git clone https://github.com/AmoghS30/CarbonSmart.git
+cd CarbonSmart
+
+# Make the script executable (if not already)
+chmod +x start.sh
+
+# Configure your environment files first (see Environment Variables section)
+# Then run the startup script
+./start.sh
+```
+
+The script will:
+- Verify Sepolia testnet connection
+- Start the Django backend (port 8000)
+- Start the AI prediction engine (port 8002)
+- Start the Next.js frontend (port 3000)
+- Check all prerequisites
+
+## Setup Instructions (Manual)
 
 ### 1. Clone the Repository
 
@@ -133,7 +157,20 @@ uvicorn ai_predict:app --reload --port 8002
 
 AI Engine runs at: `http://localhost:8002`
 
-### 5. Blockchain Setup (Optional - for NFT minting)
+### 5. Blockchain Setup (Sepolia Testnet)
+
+The application uses Ethereum Sepolia testnet for NFT minting. You'll need:
+
+1. **Get Sepolia ETH** from a faucet:
+   - [Alchemy Sepolia Faucet](https://sepoliafaucet.com/)
+   - [Infura Sepolia Faucet](https://www.infura.io/faucet/sepolia)
+
+2. **Get Alchemy API Key**:
+   - Sign up at [Alchemy](https://www.alchemy.com/)
+   - Create a new app on Sepolia network
+   - Copy your API key
+
+3. **Deploy the Contract** (if not already deployed):
 
 ```bash
 cd blockchain
@@ -143,14 +180,19 @@ npm install
 
 # Setup environment variables
 cp .env.example .env
-# Edit .env with your Alchemy/Infura RPC URL and private key
+# Edit .env with your Alchemy RPC URL and wallet private key
 
 # Compile contracts
 npx hardhat compile
 
-# Deploy to Sepolia (requires testnet ETH)
+# Deploy to Sepolia (requires testnet ETH in your wallet)
 npx hardhat run scripts/deploy.js --network sepolia
 ```
+
+4. **Update Configuration**:
+   - Copy the deployed contract address
+   - Update `CONTRACT_ADDRESS` in `backend/.env`
+   - Update `NEXT_PUBLIC_CONTRACT_ADDRESS` in `carbonsmart-frontend/.env`
 
 ## Environment Variables
 
@@ -180,14 +222,19 @@ NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID="your_project_id"
 ### Backend (`backend/.env`)
 
 ```env
-# Blockchain
-RPC_URL=https://eth-sepolia.g.alchemy.com/v2/your_api_key
-CONTRACT_ADDRESS=0x_your_deployed_contract_address
-PRIVATE_KEY=your_wallet_private_key_without_0x
+# Blockchain Configuration (Sepolia Testnet)
+RPC_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_ALCHEMY_API_KEY
+CONTRACT_ADDRESS=0xYOUR_DEPLOYED_CONTRACT_ADDRESS
+PRIVATE_KEY=your_wallet_private_key_without_0x_prefix
 
 # AI Engine
 AI_ENGINE_URL=http://127.0.0.1:8002/predict
 ```
+
+**Important**:
+- The `PRIVATE_KEY` should be from a wallet that has Sepolia ETH
+- This wallet will be used to mint NFTs on behalf of users
+- Never commit your `.env` files to git
 
 ### Blockchain (`blockchain/.env`)
 
@@ -229,7 +276,30 @@ The `CarbonCredit` contract is an ERC-721 NFT that stores:
 
 **Deployed on Sepolia Testnet**
 
+## Testing Sepolia Connection
+
+Before running the application, verify your Sepolia testnet configuration:
+
+```bash
+# Run the test script
+./test_sepolia.sh
+```
+
+This will check:
+- Sepolia RPC connection
+- Contract deployment
+- Wallet balance
+- Network configuration
+
 ## Running All Services
+
+### Option 1: Using the Startup Script (Recommended)
+
+```bash
+./start.sh
+```
+
+### Option 2: Manual Start (separate terminals)
 
 Run each service in a separate terminal:
 

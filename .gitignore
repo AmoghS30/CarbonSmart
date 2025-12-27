@@ -110,3 +110,9 @@ media/
 .cache/
 tmp/
 temp/
+
+# Service logs
+/tmp/django_output.log
+/tmp/ai_engine_output.log
+/tmp/nextjs_output.log
+/tmp/hardhat_output.log

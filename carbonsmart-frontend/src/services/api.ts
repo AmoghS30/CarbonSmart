@@ -86,7 +86,20 @@ class ApiService {
   async logActivity(data: ActivityLog): Promise<ActivityResponse> {
     try {
       const response = await this.api.post<ActivityResponse>('/api/log/', data)
-      toast.success('Activity logged successfully!')
+
+      // Show different messages based on whether NFT was minted
+      const txHash = response.data.transaction_hash
+      if (txHash && txHash.startsWith('0x') && txHash.length > 20) {
+        // NFT was minted successfully - show toast with link
+        toast.success(
+          `Carbon Credit NFT Minted! View on Sepolia: https://sepolia.etherscan.io/tx/${txHash}`,
+          { duration: 8000 }
+        )
+      } else {
+        // Activity logged but no NFT (emission activity or no wallet)
+        toast.success('Activity logged successfully!')
+      }
+
       return response.data
     } catch (error) {
       console.error('Error logging activity:', error)
@@ -193,7 +206,7 @@ class ApiService {
 
   private processActivityTypeData(activities: ActivityResponse[]) {
     const typeMap = new Map<string, number>()
-    
+
     activities.forEach((activity) => {
       const current = typeMap.get(activity.activity_type) || 0
       typeMap.set(activity.activity_type, current + activity.predicted_emission)
@@ -203,6 +216,81 @@ class ApiService {
       type,
       emissions: parseFloat(emissions.toFixed(2)),
     }))
+  }
+
+  // Marketplace API methods
+  async getMarketplaceListings() {
+    try {
+      const response = await this.api.get('/api/marketplace/listings/')
+      return response.data.listings || []
+    } catch (error) {
+      console.error('Error fetching marketplace listings:', error)
+      return []
+    }
+  }
+
+  async getUserNFTCredits(walletAddress: string) {
+    try {
+      const response = await this.api.get(`/api/marketplace/user-credits/${walletAddress}/`)
+      return response.data.credits || []
+    } catch (error) {
+      console.error('Error fetching user NFT credits:', error)
+      return []
+    }
+  }
+
+  async createMarketplaceListing(data: {
+    tokenId: number
+    sellerWallet: string
+    priceEth: number
+    seller: string
+  }) {
+    try {
+      const response = await this.api.post('/api/marketplace/create/', data)
+      if (response.data.success) {
+        toast.success('Credit listed successfully!')
+      }
+      return response.data
+    } catch (error) {
+      console.error('Error creating listing:', error)
+      toast.error('Failed to create listing')
+      throw error
+    }
+  }
+
+  async buyMarketplaceListing(listingId: string, data: {
+    buyerWallet: string
+    buyer: string
+  }) {
+    try {
+      const response = await this.api.post(`/api/marketplace/buy/${listingId}/`, data)
+      return response.data
+    } catch (error: any) {
+      console.error('Error buying listing:', error)
+      const errorMsg = error?.response?.data?.error || 'Failed to complete purchase'
+      toast.error(errorMsg)
+      throw error
+    }
+  }
+
+  async checkApprovalStatus(tokenId: number, ownerAddress: string) {
+    try {
+      const response = await this.api.get(`/api/marketplace/check-approval/${tokenId}/${ownerAddress}/`)
+      return response.data
+    } catch (error) {
+      console.error('Error checking approval:', error)
+      return { success: false, approved: false }
+    }
+  }
+
+  async getMarketplaceContractAddress() {
+    try {
+      const response = await this.api.get('/api/marketplace/contract-address/')
+      return response.data
+    } catch (error) {
+      console.error('Error getting contract address:', error)
+      return { success: false }
+    }
   }
 }
 

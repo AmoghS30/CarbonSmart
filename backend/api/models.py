@@ -2,6 +2,12 @@
 from django.db import models
 
 class Activity(models.Model):
+    MARKETPLACE_STATUS_CHOICES = [
+        ('not_listed', 'Not Listed'),
+        ('listed', 'Listed for Sale'),
+        ('sold', 'Sold'),
+    ]
+
     user = models.CharField(max_length=100)
     activity_type = models.CharField(max_length=100)
     data = models.JSONField()
@@ -10,6 +16,8 @@ class Activity(models.Model):
     transaction_hash = models.CharField(max_length=255, null=True, blank=True)
     token_id = models.IntegerField(null=True, blank=True)  # NFT Token ID from blockchain
     user_wallet = models.CharField(max_length=42, null=True, blank=True)  # Ethereum address
+    marketplace_status = models.CharField(max_length=20, choices=MARKETPLACE_STATUS_CHOICES, default='not_listed')
+    listing_price = models.FloatField(null=True, blank=True)  # Price in ETH
 
     class Meta:
         ordering = ['-timestamp']

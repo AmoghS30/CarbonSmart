@@ -112,16 +112,28 @@ def log_activity(request):
             else:
                 print(f"Minting failed: {mint_result.get('error')}")
                 transaction_hash = f"Error: {mint_result.get('error', 'Unknown error')}"
+                # Save error to database
+                activity.transaction_hash = transaction_hash
+                activity.save()
 
         except Exception as e:
             print(f"Blockchain mint error: {e}")
             transaction_hash = f"Error: {str(e)}"
+            # Save error to database
+            activity.transaction_hash = transaction_hash
+            activity.save()
     elif not is_offset_activity:
         print(f"Emitting activity detected: {activity_type}. No NFT minting for carbon emissions.")
         transaction_hash = "Emission logged (no NFT for emitting activities)"
+        # Save status to database
+        activity.transaction_hash = transaction_hash
+        activity.save()
     else:
         print("No wallet provided, skipping NFT minting")
         transaction_hash = "No wallet connected"
+        # Save status to database
+        activity.transaction_hash = transaction_hash
+        activity.save()
 
     # Step 4: Serialize and return response
     result = ActivitySerializer(activity).data

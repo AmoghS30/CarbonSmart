@@ -114,13 +114,19 @@ export default function ActivitiesPage() {
       setMintedTokenId(response.token_id)
       setTransactionHash(response.transaction_hash)
 
+      // Check if blockchain transaction completed successfully
+      const isValidTxHash = response.transaction_hash &&
+                            response.transaction_hash.startsWith('0x') &&
+                            response.transaction_hash.length > 20
+
       // Only show minted message for offset activities
-      if (isOffset && response.token_id) {
+      if (isOffset && isValidTxHash) {
         setWasMinted(true)
-        toast.success(`Carbon Credit NFT #${response.token_id} minted!`)
-      } else if (isOffset && response.transaction_hash && !response.transaction_hash.startsWith('Error')) {
-        setWasMinted(true)
-        toast.success(`Carbon offset logged! TX: ${response.transaction_hash.slice(0, 10)}...`)
+        if (response.token_id) {
+          toast.success(`Carbon Credit NFT #${response.token_id} minted!`)
+        } else {
+          toast.success(`Carbon offset logged! TX: ${response.transaction_hash.slice(0, 10)}...`)
+        }
       } else {
         toast.success('Activity logged successfully!')
       }
